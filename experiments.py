@@ -19,7 +19,7 @@ tf.flags.DEFINE_string(
     'hparams', '',
     'Comma-separated list of `name=value` hyperparameter values.')
 
-tf.flags.DEFINE_integer('save_checkpoints_steps', 200,
+tf.flags.DEFINE_integer('save_checkpoints_steps', 2000,
                         'Steps between each checkpoint save.')
 
 tf.flags.DEFINE_integer('keep_checkpoint_max', 5,
@@ -179,7 +179,7 @@ def main(argv):
       ### Network size parameters
       word_embedding_size=128,  # Word embedding dimension
       vocab_size=2044 + 4,  # Use most common vocab words + 4 special tokens
-      truncate_size=1000,  # Max number of tokens per term (goal/theorem)
+      truncate_size=512,  # Max number of tokens per term (goal/theorem)
       num_tactics=41,  # Number of tactics
       hidden_size=128,  # Encoding size of theorems and goals
       final_size=128,  # Size of the dense layers on top of the wavenet decoder.
@@ -205,7 +205,7 @@ def main(argv):
       att_key_sim_scale=0.0,  # Scaling factor for the attention key similarity.
       beta=0.001,  # Scaling factor for the information bottleneck, if used.
       ### Training parameters
-      batch_size=3,
+      batch_size=1,
       # Integer multiple ratio neg_examples:positives.
       ratio_neg_examples=7,
       # Multiple of positives, <= ratio_neg_examples.
