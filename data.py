@@ -62,7 +62,7 @@ def get_holparam_dataset(mode, params):
     if params.eval_dataset_dir:
       path = os.path.join(params.eval_dataset_dir, 'tf*')
     else:
-      path = os.path.join(params.dataset_dir, 'valid', 'tf*')
+      path = os.path.join(params.dataset_dir, 'valid', 'valid*')
     files = tf.gfile.Glob(path)
 
     tf.logging.info('EVAL files: %s.', ' '.join([str(f) for f in files]))

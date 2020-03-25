@@ -19,7 +19,7 @@ tf.flags.DEFINE_string(
     'hparams', '',
     'Comma-separated list of `name=value` hyperparameter values.')
 
-tf.flags.DEFINE_integer('save_checkpoints_steps', 20000,
+tf.flags.DEFINE_integer('save_checkpoints_steps', 200,
                         'Steps between each checkpoint save.')
 
 tf.flags.DEFINE_integer('keep_checkpoint_max', 5,
