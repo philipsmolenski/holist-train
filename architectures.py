@@ -176,7 +176,6 @@ def dilated_cnn_goal_encoder(features, labels, mode, params, config):
   # goal_ids shape is [batch_size, length of goal]
   tf.add_to_collection('goal_ids', features['goal_ids'])
 
-  """
   goal_embedding = get_vocab_embedding('goal_embedding', params)
   # output shape is [batch_size, goal length, word_embedding_size]
   goal_net = tf.nn.embedding_lookup(goal_embedding, features['goal_ids'])
@@ -184,13 +183,13 @@ def dilated_cnn_goal_encoder(features, labels, mode, params, config):
   with tf.variable_scope('goal', reuse=False):
     # output shape: [batch_size, 1, goal length, hidden_size]
     goal_net = wavenet_encoding(goal_net, params, mode)
-  """
 
-  with tf.variable_scope('goal', reuse=False):
-    goal_net = bert_encoding(features['goal_ids'], params, mode, 1)
+
+  # with tf.variable_scope('goal', reuse=False):
+  #   goal_net = bert_encoding(features['goal_ids'], params, mode, 1)
 
   # output shape is [batch_size, hidden_size]
-  goal_net = tf.reduce_max(goal_net, [1])
+  goal_net = tf.reduce_max(goal_net, [1, 2])
 
   # The first goal_net in the collection matches the number of unique goals.
   # This will be used by the predictor to compute the embedding of the goals.
@@ -225,7 +224,6 @@ def dilated_cnn_thm_encoder(features, labels, mode, params, config):
 
   tf.add_to_collection('thm_ids', features['thm_ids'])
   
-  """
   # thm_ids shape is [batch_size, length of thm]
   if params.thm_vocab is not None:
     thm_embedding = get_vocab_embedding('thm_embedding', params)
@@ -240,13 +238,12 @@ def dilated_cnn_thm_encoder(features, labels, mode, params, config):
   with tf.variable_scope('thm', reuse=False):
     # output shape: [batch_size, 1, thm length, hidden_size]
     thm_net = wavenet_encoding(thm_net, params, mode)
-  """
 
-  with tf.variable_scope('thm', reuse=False):
-    thm_net = bert_encoding(features['thm_ids'], params, mode, 0)
+  # with tf.variable_scope('thm', reuse=False):
+  #   thm_net = bert_encoding(features['thm_ids'], params, mode, 0)
 
   # output shape is [batch_size, hidden_size]
-  thm_net = tf.reduce_max(thm_net, [1])
+  thm_net = tf.reduce_max(thm_net, [1, 2])
   tf.add_to_collection('thm_net', thm_net)
 
   return thm_net
