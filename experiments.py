@@ -10,22 +10,22 @@ import pickle
 import numpy as np
 import tensorflow as tf
 
-from deepmath.deephol.train import architectures
-from deepmath.deephol.train import data
-from deepmath.deephol.train import model
-from deepmath.deephol.train import utils
+import architectures
+import data
+import model
+import utils
 
 tf.flags.DEFINE_string(
     'hparams', '',
     'Comma-separated list of `name=value` hyperparameter values.')
 
-tf.flags.DEFINE_integer('save_checkpoints_steps', 10000,
+tf.flags.DEFINE_integer('save_checkpoints_steps', 20000,
                         'Steps between each checkpoint save.')
 
-tf.flags.DEFINE_integer('keep_checkpoint_max', 10,
+tf.flags.DEFINE_integer('keep_checkpoint_max', 5,
                         'Maximum number of checkpoints kept.')
 
-tf.flags.DEFINE_integer('save_summary_steps', 200, 'Steps between summaries.')
+tf.flags.DEFINE_integer('save_summary_steps', 100, 'Steps between summaries.')
 
 tf.flags.DEFINE_string('dataset_dir', None,
                        'Directory containing train, valid, and test examples.')
@@ -107,13 +107,20 @@ def train_and_eval(params):
   train_input_fn, eval_input_fn = get_input_fns(params)
 
   session_config = tf.ConfigProto(
-      intra_op_parallelism_threads=FLAGS.max_threads)
+      intra_op_parallelism_threads=FLAGS.max_threads,
+      device_count={'GPU': 1},
+      allow_soft_placement=True, #TODO Change to True after testing
+      log_device_placement=False,)
+  
+  strategy = tf.compat.v1.distribute.MirroredStrategy()
+
   run_config = tf.estimator.RunConfig(
       model_dir=FLAGS.model_dir,
       save_checkpoints_steps=FLAGS.save_checkpoints_steps,
       keep_checkpoint_max=FLAGS.keep_checkpoint_max,
       save_summary_steps=FLAGS.save_summary_steps,
-      session_config=session_config)
+      session_config=session_config,
+      train_distribute=strategy,)
 
   estimator = tf.estimator.Estimator(
       model_fn=model.model_fn, params=params, config=run_config)
@@ -172,7 +179,7 @@ def main(argv):
       ### Network size parameters
       word_embedding_size=128,  # Word embedding dimension
       vocab_size=2044 + 4,  # Use most common vocab words + 4 special tokens
-      truncate_size=1000,  # Max number of tokens per term (goal/theorem)
+      truncate_size=512,  # Max number of tokens per term (goal/theorem)
       num_tactics=41,  # Number of tactics
       hidden_size=128,  # Encoding size of theorems and goals
       final_size=128,  # Size of the dense layers on top of the wavenet decoder.
@@ -198,7 +205,7 @@ def main(argv):
       att_key_sim_scale=0.0,  # Scaling factor for the attention key similarity.
       beta=0.001,  # Scaling factor for the information bottleneck, if used.
       ### Training parameters
-      batch_size=4,
+      batch_size=3,
       # Integer multiple ratio neg_examples:positives.
       ratio_neg_examples=7,
       # Multiple of positives, <= ratio_neg_examples.
@@ -213,8 +220,8 @@ def main(argv):
       layer_comb_weight=1.0,
       decay_rate=0.98,
       topk=FLAGS.topk,
-      goal_vocab='vocab_goal_ls.txt',
-      thm_vocab='vocab_thms_ls.txt',
+      goal_vocab='vocab_ls.txt',
+      thm_vocab='vocab_ls.txt',
       replace_generic_variables_and_types=True,
       thm_asmpt_list_file='thm_asmpt_list_train.tfrecord',
       empty_string_thm_emb=None,
@@ -231,7 +238,10 @@ def main(argv):
       decoder=None,
       model_head=None,
       # Condition parameter selection on tactic (PARAMETERS_CONDITIONED_ON_TAC).
-      parameters_conditioned_on_tac=False,
+      parameters_conditioned_on_tac=True,
+      bert_checkpoint=tf.train.latest_checkpoint(
+          "{}/{}".format("gs://{}".format('zpp-bucket-1920'), 'bert-bucket-golkarolka/bert_deephol')
+      )
   )
   hparams.parse(FLAGS.hparams)
   if not (hparams.ratio_max_hard_negative_examples <=
