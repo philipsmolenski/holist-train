@@ -121,7 +121,7 @@ def bert_encoding(net, params, mode, type_id):
   seq_length = input_shape[1]
 
   model = modeling.BertModel(config=config, is_training=(mode == TRAIN), input_ids=net,
-                             input_mask=input_mask, token_type_ids=tf.fill(input_shape, type_id))
+                             input_mask=input_mask, token_type_ids=tf.fill(input_shape, 0))
   tvars = tf.trainable_variables()
   use_tpu = False
   
