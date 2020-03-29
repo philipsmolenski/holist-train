@@ -101,8 +101,19 @@ def wavenet_encoding(net, params, mode):
         keep_prob=layer_keep_prob)
   return net
 
+def to_mask(n):
+  return tf.cond(tf.equal(n, tf.constant(0)), lambda: tf.constant(0), lambda: tf.constant(1))
 
 def bert_encoding(net, params, mode, type_id):
+  net = _pad_up_to(net, 512, 1)
+  zero = tf.constant([0])
+  input_mask = tf.map_fn(lambda x: tf.map_fn(to_mask, x), net)
+
+  net = tf.Print(net, [tf.shape(net)], "NET SHAPE: ", summarize=-1)
+  net = tf.Print(net, [net], "NET TENSOR: ", summarize=-1)
+  input_mask = tf.Print(input_mask, [tf.shape(input_mask)], "INPUT MASK SHAPE: ", summarize=-1)
+  input_mask = tf.Print(input_mask, [input_mask], "INPUT MASK TENSOR: ", summarize=-1)
+
   config = modeling.BertConfig.from_json_file('bert_config.json')
 
   input_shape = modeling.get_shape_list(net, expected_rank=2)
@@ -110,7 +121,7 @@ def bert_encoding(net, params, mode, type_id):
   seq_length = input_shape[1]
 
   model = modeling.BertModel(config=config, is_training=(mode == TRAIN), input_ids=net,
-                             token_type_ids=tf.fill(input_shape, type_id))
+                             input_mask=input_mask, token_type_ids=tf.fill(input_shape, type_id))
   tvars = tf.trainable_variables()
   use_tpu = False
   

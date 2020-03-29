@@ -86,6 +86,10 @@ def load_vocab(vocab_file):
       token = token.strip()
       vocab[token] = index
       index += 1
+
+    print ("[MASK]", vocab["[MASK]"])
+    print ("[MASK2]", vocab["[MASK2]"])
+    print ("fun", vocab["fun"])
   return vocab
 
 
@@ -158,3 +162,5 @@ class LongestTokenizer(object):
 
   def convert_ids_to_tokens(self, ids):
     return convert_by_vocab(self.inv_vocab, ids)
+
+LongestTokenizer('vocab.txt')
