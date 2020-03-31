@@ -105,6 +105,15 @@ def to_mask(n):
   return tf.cond(tf.equal(n, tf.constant(0)), lambda: tf.constant(0), lambda: tf.constant(1))
 
 def bert_encoding(net, params, mode, type_id):
+  """
+  Arguments:
+    net: tensor of shape [batch_size, text_length]
+    params: hyperparameters
+    mode: Estimator mode
+
+  Returns:
+    output: output tensor of shape [batch_size, text_length, hidden_size]
+  """
   net = _pad_up_to(net, 512, 1)
   zero = tf.constant([0])
   input_mask = tf.map_fn(lambda x: tf.map_fn(to_mask, x), net)
